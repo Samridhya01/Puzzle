@@ -1,116 +1,117 @@
-:root {
-  --color:rgb(0, 0, 0);
-  --border-radius:10px;
+var images = [
+  'https://i.ibb.co/tQ24kt4/In-Shot-20240901-085226460.jpg',
+  'https://i.ibb.co/jbqFY86/In-Shot-20240901-085204069.jpg',
+  'https://i.ibb.co/xXsvK5k/In-Shot-20240901-085147191.jpg',
+  'https://i.ibb.co/w0LHwtY/In-Shot-20240901-085126639.jpg',
+  'https://i.ibb.co/9pf980m/In-Shot-20240901-085104394.jpg',
+  'https://i.ibb.co/FnbSQYT/In-Shot-20240901-085037450.jpg',
+  'https://i.ibb.co/SKzDGpv/In-Shot-20240901-084932460.jpg'
+];
+
+var totalClicks = 0;
+
+function randomizeImage() {
+let root = document.documentElement;
+
+// Select a random image from the images array
+var randomIndex = Math.floor(Math.random() * images.length);
+var selectedImage = images[randomIndex];
+
+// Set the selected image as the background image
+root.style.setProperty('--image', 'url(' + selectedImage + ')');
+
+// Randomly position puzzle items
+var puzzleItems = document.querySelectorAll('#puzz i');
+for (var i = 0; i < puzzleItems.length; i++) {
+  puzzleItems[i].style.left = Math.random() * (window.innerWidth - 100) + 'px';
+  puzzleItems[i].style.top = Math.random() * (window.innerHeight - 100) + 'px';
+}
 }
 
-body {
-  background:#000000;
-  padding:0;
-  margin:0;
-  box-sizing:border-box;
+randomizeImage();
+
+function reloadPuzzle() {
+var doneItems = document.querySelectorAll('.done');
+doneItems.forEach(function (element) {
+  element.classList.toggle('done');
+});
+var droppedItems = document.querySelectorAll('.dropped');
+droppedItems.forEach(function (element) {
+  element.classList.toggle('dropped');
+});
+var allDoneElement = document.querySelector('.allDone');
+allDoneElement.style = '';
+allDoneElement.classList.toggle('allDone');
 }
 
-#puz, #puzz {
-  position:absolute;
-  border-radius:var(--border-radius) 0 var(--border-radius) 0;    
-  user-select:none;
-}
-#puz {
-  width:300px;
-  height:300px;
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  border:3px dashed lightgray;
-  overflow:hidden;
-}
-#puzz {
-  left:0;
-  top:0;
-  border:0;
+// Mobile functionality
+var puzzleItemsMobile = document.querySelectorAll('#puzz i');
+puzzleItemsMobile.forEach(function (element) {
+element.addEventListener('mousedown', function () {
+  totalClicks++;
+  document.querySelector('#clicks').innerHTML = totalClicks;
+});
+element.addEventListener('click', function () {
+  if (document.querySelector('.clicked')) {
+    document.querySelector('.clicked').classList.toggle('clicked');
+    element.classList.toggle('clicked');
+  } else {
+    element.classList.toggle('clicked');
+  }
+});
+});
+
+var puzzleItemsDesktop = document.querySelectorAll('#puz i');
+puzzleItemsDesktop.forEach(function (element) {
+element.addEventListener('click', function () {
+  if (document.querySelector('.clicked')) {
+    var clickedElement = document.querySelector('.clicked');
+    if (clickedElement.classList.contains(element.classList)) {
+      element.classList.add('dropped');
+      clickedElement.classList.add('done');
+      clickedElement.classList.toggle('clicked');
+
+      if (document.querySelectorAll('.dropped').length == 9) {
+        document.querySelector('#puz').classList.add('allDone');
+        document.querySelector('#puz').style.border = 'none';
+        document.querySelector('#puz').style.animation = 'allDone 1s linear forwards';
+
+        setTimeout(function () {
+          reloadPuzzle();
+          randomizeImage();
+        }, 1500);
+      }
+    }
+  }
+});
+});
+
+// Desktop drag and drop
+function allowDrop(ev) {
+ev.preventDefault();
 }
 
-#puz i {
-  float:left;
-  width:100px;
-  height:100px;
-  outline:1px dashed lightgray;
+function drag(ev) {
+ev.dataTransfer.setData("text", ev.target.className);
 }
 
-#puzz i {
-  position:absolute;
-  width:100px;
-  height:100px;
-  background:var(--color);
-  background-image:var(--image);
-  background-size:300px 300px;
-  cursor:move;
-  box-shadow:0 0 10px rgba(0,0,0,.25);
-}
+function drop(ev) {
+ev.preventDefault();
+var data = ev.dataTransfer.getData("text");
 
-.first {
-  border-top-left-radius:var(--border-radius);
-  background-position:left top !important;
-}
-.secon {
-  background-position:center top !important;
-}
-.third {
-/*   border-top-right-radius:var(--border-radius); */
-  background-position:right top !important;
-}
-.fourt {
-  background-position:left center !important;
-}
-.fifth {
-  background-position:center center !important;
-}
-.sixth {  
-  background-position:right center !important;
-}
-.seven {
-/*   border-bottom-left-radius:var(--border-radius); */
-  background-position:left bottom !important;
-}
-.eight {
-  background-position:center bottom !important;
-}
-.ninth {
-  border-bottom-right-radius:var(--border-radius);
-  background-position:right bottom !important;
-}
+if (ev.target.className == data) {
+  ev.target.classList.add('dropped');
+  document.querySelector('.' + data + "[draggable='true']").classList.add('done');
 
-.clicked {
-  box-shadow:0 0 0 4px gray !important;
-}
+  if (document.querySelectorAll('.dropped').length == 9) {
+    document.querySelector('#puz').classList.add('allDone');
+    document.querySelector('#puz').style.border = 'none';
+    document.querySelector('#puz').style.animation = 'allDone 1s linear forwards';
 
-.dropped {
-  background:var(--color);
-  background-image:var(--image);
-  background-size:300px 300px;
+    setTimeout(function () {
+      reloadPuzzle();
+      randomizeImage();
+    }, 1500);
+  }
 }
-.done {
-  opacity:0;
-  pointer-events:none;
-}
-
-.allDone {
-  animation:allDone 1s linear forwards;
-  border:3px solid lightgray !important;
-}
-.allDone i {
-  outline:0 !important;
-}
-
-@keyframes allDone {
-  50% { transform:translate(-50%,-50%) scale(1.2); }
-}
-
-#clicks {
-  font-size:8px;
-  font-family:monospace;
-  position:absolute;
-  bottom:5px;
-  right:5px;
 }
